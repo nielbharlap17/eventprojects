@@ -7,7 +7,7 @@ import User from '../database/models/user.model'
 import Event from '../database/models/event.model'
 import Order from '../database/models/order.model'
 
-export const createUser = async (user: CreateUserParams) =>{
+export async function createUser(user: any){
     try {
         await connectToDatabase();
         const newUser = await User.create(user);

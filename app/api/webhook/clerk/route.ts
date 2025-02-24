@@ -5,14 +5,14 @@ import { createUser, deleteUser, updateUser } from '@/lib/actions/user.actions'
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
-  const SIGNING_SECRET = process.env.SIGNING_SECRET
+  const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
-  if (!SIGNING_SECRET) {
-    throw new Error('Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env.local')
+  if (!WEBHOOK_SECRET) {
+    throw new Error('Error: Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local')
   }
 
   // Create new Svix instance with secret
-  const wh = new Webhook(SIGNING_SECRET)
+  const wh = new Webhook(WEBHOOK_SECRET)
 
   // Get headers
   const headerPayload = await headers()
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const payload = await req.json()
   const body = JSON.stringify(payload)
 
-  let evt: WebhookEvent
+  let evt: WebhookEvent;
 
   // Verify payload with headers
   try {
@@ -62,16 +62,17 @@ export async function POST(req: Request) {
       firstName: first_name || '',
       lastName: last_name || '',
       photo: image_url,
-    }
+    };
+    console.log(user);
     const newUser = await createUser(user);
     
     if(newUser) {
         const client = await clerkClient();
         await client.users.updateUserMetadata(id, {
           publicMetadata: {
-            userId: newUser._id
-          }
-        })
+            userId: newUser._id,
+          },
+        });
       }
       return NextResponse.json({ message: 'OK', user: newUser })
   }
